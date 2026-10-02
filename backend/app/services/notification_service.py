@@ -10,13 +10,28 @@ from app.services.settings_service import SettingsService
 log = structlog.get_logger()
 
 
+class DeliveryBlocked(Exception):
+    """The user blocked the bot / deactivated the account (HTTP 403)."""
+
+
+class DeliveryRetry(Exception):
+    def __init__(self, seconds: float) -> None:
+        super().__init__(f"retry after {seconds}")
+        self.seconds = seconds
+
+
 class Messenger(Protocol):
+    async def send_content(self, chat_id: int, content: dict[str, Any]) -> None: ...
+
     async def send(self, chat_id: int, text: str, reply_markup: Any = None) -> int | None: ...
 
     async def edit(self, chat_id: int, message_id: int, text: str, reply_markup: Any = None) -> bool: ...
 
 
 class NullMessenger:
+    async def send_content(self, chat_id: int, content: dict[str, Any]) -> None:
+        return None
+
     async def send(self, chat_id: int, text: str, reply_markup: Any = None) -> int | None:
         return None
 

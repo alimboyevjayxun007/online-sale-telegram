@@ -6,23 +6,23 @@ from sqlalchemy import func, select
 
 from app.core.enums import (
     OrderStatus as S,
+)
+from app.core.enums import (
     PaymentMethod as M,
+)
+from app.core.enums import (
     PaymentStatus,
     ProductType,
     ProviderCode,
-    RecipientType,
 )
 from app.core.errors import InvalidState, MethodDisabled, ValidationFailed
 from app.core.timeutil import now_utc
 from app.models import (
     BalanceTransaction,
     HotWalletTransaction,
-    Order,
-    Payment,
     ReferralReward,
     StarsTransaction,
     UnmatchedTonTx,
-    User,
 )
 from app.providers.ton.chain import IncomingTx
 from app.services.checkout_service import CreateOrderRequest

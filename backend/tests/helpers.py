@@ -29,6 +29,16 @@ class FakeMessenger:
         self.edits.append((chat_id, message_id, text))
         return True
 
+    async def send_content(self, chat_id, content):
+        from app.services.notification_service import DeliveryBlocked, DeliveryRetry
+
+        if chat_id in getattr(self, "blocked", set()):
+            raise DeliveryBlocked()
+        if getattr(self, "flood_once", False):
+            self.flood_once = False
+            raise DeliveryRetry(0.01)
+        self.content_sent = getattr(self, "content_sent", []) + [(chat_id, content)]
+
     def texts(self, chat_id=None):
         return [t for c, t in self.sent if chat_id is None or c == chat_id] + [
             t for c, _, t in self.edits if chat_id is None or c == chat_id
