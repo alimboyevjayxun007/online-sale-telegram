@@ -1,0 +1,10 @@
+[Unit]
+Description=Soft-tg-Market database backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=premium
+Group=premium
+EnvironmentFile=/etc/premium/backend.env
+ExecStart=/opt/premium/app/deploy/scripts/backup.sh

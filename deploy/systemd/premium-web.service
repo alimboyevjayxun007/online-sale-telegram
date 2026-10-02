@@ -1,0 +1,20 @@
+[Unit]
+Description=Soft-tg-Market Mini App (Next.js standalone)
+After=network-online.target
+
+[Service]
+User=premium
+Group=premium
+WorkingDirectory=/opt/premium/app/webapp/.next/standalone
+EnvironmentFile=/etc/premium/webapp.env
+Environment=NODE_ENV=production PORT=3000 HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

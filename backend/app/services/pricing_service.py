@@ -67,9 +67,17 @@ class PricingService:
             raise PlanUnavailable("plan disabled")
         ton_usd, usd_uzs, margin, step, star_rate = await self._common()
         fee = D(await self.settings.get("pricing.network_fee_ton"))
-        if plan.cost_ton is None and plan.fixed_price_usd is None:
-            raise PlanUnavailable("cost unknown")
-        cost = ((plan.cost_ton or Decimal(0)) + fee) * ton_usd if plan.cost_ton is not None else Decimal(0)
+        if plan.cost_ton is not None:
+            cost = (plan.cost_ton + fee) * ton_usd
+        else:
+            # no live price yet: fall back to the USD list price, converted at the current TON rate
+            fallback = (await self.settings.get("pricing.fallback_cost_usd") or {}).get(str(plan.months))
+            if fallback is not None:
+                cost = D(fallback) + fee * ton_usd
+            elif plan.fixed_price_usd is not None:
+                cost = Decimal(0)
+            else:
+                raise PlanUnavailable("cost unknown")
         min_price = cost * (1 + margin / 100)
         if plan.fixed_price_usd is not None:
             raw = plan.fixed_price_usd
@@ -86,9 +94,12 @@ class PricingService:
         if amount < 50 or amount > max_amount:
             raise ValidationFailed("stars amount out of range", min=50, max=max_amount)
         ton_usd, usd_uzs, margin, _, _ = await self._common()
-        unit_ton = D(await self.settings.get("provider.star_unit_cost_ton"))
+        unit_ton_raw = await self.settings.get("provider.star_unit_cost_ton")
         markup = D(await self.settings.get("pricing.stars.markup_percent"))
-        cost = unit_ton * amount * ton_usd
+        if unit_ton_raw:
+            cost = D(unit_ton_raw) * amount * ton_usd
+        else:
+            cost = D(await self.settings.get("pricing.fallback_star_cost_usd")) * amount
         min_price = cost * (1 + margin / 100)
         price = round_up(max(cost * (1 + markup / 100), min_price), Decimal("0.01"))
         q = self._finish(price, cost, min_price, ton_usd, usd_uzs, 0)

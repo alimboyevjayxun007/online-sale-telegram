@@ -49,7 +49,9 @@ DEFAULTS: dict[str, Any] = {
         "order_failed": True,
         "new_user": False,
     },
-    "provider.star_unit_cost_ton": "0.005",
+    "provider.star_unit_cost_ton": "",  # filled by a live provider price feed when available
+    "pricing.fallback_cost_usd": {"3": "11.99", "6": "15.99", "12": "28.99"},  # Fragment USD list prices
+    "pricing.fallback_star_cost_usd": "0.015",
     "ton_watcher.last_lt": 0,
     "admin.balance_limit_usd": "50",
 }

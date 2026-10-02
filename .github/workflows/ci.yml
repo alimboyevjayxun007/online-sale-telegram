@@ -3,6 +3,18 @@ on: [push, pull_request]
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: premium, POSTGRES_PASSWORD: premium, POSTGRES_DB: premium_test }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U premium" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 10
     defaults: { run: { working-directory: backend } }
     steps:
       - uses: actions/checkout@v4
@@ -11,6 +23,11 @@ jobs:
       - run: uv run ruff check .
       - run: uv run mypy app
       - run: uv run pytest -q
+      - name: Migrations apply and roll back cleanly
+        env: { DATABASE_URL: "postgresql+asyncpg://premium:premium@127.0.0.1:5432/premium_test" }
+        run: |
+          psql "postgresql://premium:premium@127.0.0.1:5432/premium_test" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+          uv run alembic upgrade head && uv run alembic downgrade base && uv run alembic upgrade head
   webapp:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: webapp } }

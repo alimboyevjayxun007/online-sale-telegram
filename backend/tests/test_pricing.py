@@ -64,7 +64,7 @@ async def test_premium_unavailable_and_uzs(session):
     with pytest.raises(PlanUnavailable):
         await p.quote_premium(plan(1, is_enabled=False))
     with pytest.raises(PlanUnavailable):
-        await p.quote_premium(plan(cost=None))
+        await p.quote_premium(plan(1, cost=None))
     q = await p.quote_premium(plan())
     assert q.price_uzs == 168000 and q.price_ton == Dc("4.39") and q.price_xtr == 1100
 
@@ -148,3 +148,17 @@ async def test_parallel_debits_never_negative(session):
     assert ok == 3
     await session.refresh(u)
     assert u.balance_usd == Dc(1)
+
+
+async def test_fallback_usd_cost_when_no_live_price(session):
+    p = await pricing(session, ton=Dc(3))
+    q = await p.quote_premium(plan(3, cost=None))
+    assert q.cost_usd == Dc("12.14") and q.price_usd == Dc("13.15")  # 11.99 + 0.05 TON fee
+    assert (await p.quote_premium(plan(6, cost=None))).price_usd == Dc("17.45")
+    # the fallback is a USD list price: a pricier TON makes the TON amount smaller, the USD cost stays put
+    p2 = await pricing(session, ton=Dc(6))
+    q2 = await p2.quote_premium(plan(3, cost=None))
+    assert q2.price_ton < q.price_ton
+    # a live price from the provider wins over the fallback
+    live = await p2.quote_premium(plan(3, cost="3.0"))
+    assert live.cost_usd == Dc("18.3")  # (3.0 + 0.05 TON fee) * 6 — the live TON price, not the USD fallback

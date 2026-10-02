@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "e2e:ton": "node e2e/ton_flow.mjs",
+    "e2e:admin": "node e2e/admin_flow.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",
@@ -27,6 +29,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
+    "playwright": "^1.63.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

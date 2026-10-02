@@ -26,19 +26,12 @@ async def _create_schema() -> None:
     eng = get_engine()
     async with eng.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-        await conn.execute(
-            text(
-                "DROP TYPE IF EXISTS "
-                + ",".join(
-                    t.name
-                    for t in {
-                        c.type for tb in Base.metadata.tables.values() for c in tb.columns if hasattr(c.type, "enums")
-                    }
-                    if t.name
-                )
-                + " CASCADE"
-            )
-        ) if False else None
+        # drop_all leaves the PostgreSQL enum types behind; recreate them from the current models
+        enum_names = {
+            c.type.name for tb in Base.metadata.tables.values() for c in tb.columns if hasattr(c.type, "enums")
+        }
+        for name in sorted(n for n in enum_names if n):
+            await conn.execute(text(f'DROP TYPE IF EXISTS "{name}" CASCADE'))
         await conn.run_sync(Base.metadata.create_all)
     await dispose_engine()
 

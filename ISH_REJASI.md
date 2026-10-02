@@ -1,6 +1,6 @@
 # 💎 Premium Market Bot — To'liq loyiha hujjati va ish rejasi
 
-> **Holat:** ✅ Tasdiqlandi (v1.1) — 22-bo'limdagi qarorlar bilan. Ishlab chiqish: Bosqich 1 dan boshlandi
+> **Holat:** ✅ Amalga oshirildi (v1.2) — 22-bo'limdagi qarorlar bilan; haqiqiy holat va rejadan farqlar: **23-bo'lim**
 > **Sana:** 2026-10-01
 > **Owner / Bosh admin:** Siz
 > **Stek:** Python 3.13 · FastAPI · aiogram 3 · PostgreSQL · Redis · Next.js 16 · TON · Telegram Stars
@@ -38,6 +38,7 @@
 20. [Kelajakdagi imkoniyatlar](#20-kelajakdagi-imkoniyatlar)
 21. [❓ Tasdiqlash uchun savollar](#21--tasdiqlash-uchun-savollar-siz-javob-berasiz)
 22. [✅ Qabul qilingan qarorlar](#22--qabul-qilingan-qarorlar)
+23. [🧾 Amalga oshirish natijasi (haqiqiy holat)](#23--amalga-oshirish-natijasi-haqiqiy-holat)
 
 ---
 
@@ -4051,3 +4052,63 @@ shuni tanlashingiz mumkin.
 | 13 | User panel ham to'liq bo'lsin | Rejada bor (U1–U20, Mini App `/`, `/premium`…); `user` roli qo'shilgan |
 | 14 | **B** — yangi foydalanuvchi faqat kunlik hisobotda | `notify.events.new_user = false` |
 | — | Owner Telegram ID: `6190984042` | `OWNER_TELEGRAM_ID` |
+
+
+---
+
+## 23. 🧾 Amalga oshirish natijasi (haqiqiy holat)
+
+### 23.1 Nima qilindi
+
+| Bosqich | Holat | Qanday tekshirildi |
+|---------|-------|--------------------|
+| 1–3 Skelet, DB, yadro | ✅ | Alembic `upgrade → downgrade → upgrade` haqiqiy PostgreSQL'da; `initData` HMAC testlari |
+| 4 Bot poydevori + user ekranlari | ✅ | Soxta Telegram transporti orqali **haqiqiy dispatcher + middleware + FSM + Redis + PostgreSQL** (`tests/test_bot.py`) |
+| 5 Narxlash/katalog | ✅ | Jadvalli testlar (formulalar, min-foyda, promokod, yaxlitlash) |
+| 6 Buyurtma + Stars to'lov | ✅ | Holat mashinasi, `pre_checkout`, takroriy `successful_payment`, `refundStarPayment` |
+| 7 TON to'lov + hot wallet | ✅* | To'liq/kam/ortiqcha/kech/izohsiz to'lovlar; W5 hamyon **offline** yaratildi; yechish qoidalari |
+| 8 Yetkazish | ✅* | Mock/BotStars/Fragment(mock HTTP); qayta urinish, noaniq holat, avtomatik refund, parallel workerlar |
+| 9 Balans/referal/promo | ✅ | Ledger mosligi, parallel xaridda manfiy balans yo'q |
+| 10 Bot admin panel | ✅ | Rol tekshiruvi, tasdiqlash tokenlari (bir martalik), ban, balans, texnik ishlar |
+| 11 Analitika | ✅ | Qo'lda hisoblangan qiymatlar, Toshkent vaqt chegaralari (23:59/00:01), davrlar |
+| 12–13 Mini App (user + admin) | ✅ | `next build`, ESLint, `tsc`, **haqiqiy brauzerda** (Playwright) light/dark |
+| 14 Broadcast/obuna/bildirishnoma | ✅ | Bloklanganlar, flood-wait, segmentlar, pauza/bekor |
+| 15 Xavfsizlik/test | ✅ | 77 backend test + 2 brauzer E2E skript |
+| 16 Deploy (Dockersiz) | ✅* | `nginx -t` + haqiqiy nginx orqali TLS/proksi/kesh; backup→`age`→restore haqiqiy bazada; `bash -n`, `systemd-analyze verify` |
+| 17 Ishga tushirish | ⏳ | Sizning serveringiz va tokeningiz kerak (quyida) |
+
+\* — **tashqi tizimlar bilan jonli sinov** sandboxda mumkin emas edi (Telegram, TonAPI, Fragment tarmoqqa chiqish yopiq).
+
+### 23.2 Rejadan farqlar (ongli qarorlar)
+
+| Reja | Amalda | Sabab |
+|------|--------|-------|
+| gettext/babel `.po` | Oddiy lug'at (`app/i18n.py`, `app/bot/texts.py`) | Soddaroq, testlanadi, qo'shimcha asbob kerak emas |
+| Mini App: `@tma.js/sdk-react`, `next-intl`, shadcn/ui, zod, react-hook-form | Telegram'ning rasmiy `telegram-web-app.js` + o'z `lib/tma.ts`, o'z lug'at, o'z UI komponentlar | Kamroq bog'liqlik, versiya mos kelmasligi xavfi yo'q |
+| Sozlamalar keshi Redis'da | Jarayon ichida 5 soniyalik kesh | Soddaroq; bir necha jarayon orasida ≤5 s kechikish |
+| Admin buyruqlari/ekranlar `Adm` (admin) faqat uz tilida | Shunday | Admin — o'zbekcha |
+| Fragment narxlarini avtomatik o'qish | **Yo'q** — zaxira: USD ro'yxat narxi (3/6/12 oy: 11.99/15.99/28.99 $, Stars 0.015 $) joriy TON kursiga o'tkaziladi; admin panelda "Tannarx (TON)" kiritilsa, u ustun | Fragment ochiq API'si yo'q, jonli tekshirib bo'lmadi |
+| `fragment_api` (uchinchi tomon) provider | Interfeys bor, **vendor ulanmagan** (o'zini "mavjud emas" deb ko'rsatadi) | Qaysi servis tanlanishi hali noma'lum |
+| Stars bilan to'lanmagan buyurtmada `bot_stars` zaxirasi | **Faqat zararsiz bo'lsa** (tannarx ≤ narx) | Testda aniqlangan: 12 oy = 2500 ⭐ ≈ 32.5 $ > 31.5 $ narx |
+| Promokod chegirmasi | Narx min. foydadan past tushmaydi, 0.01 ga **yuqoriga** yaxlitlanadi | Testda aniqlangan: yaxlitlanmagan narx (12.393 $) chiqayotgan edi |
+| Texnik ishlar: faqat bot | Mini App API ham bloklanadi (xodimlardan tashqari) | Brauzer E2E'da aniqlangan kamchilik |
+
+### 23.3 Tasdiqlanmagan (siz serverda birinchi bo'lib sinaysiz)
+
+1. **Fragment (direct) adapteri** sayt ichki JSON so'rovlariga (`searchPremiumGiftRecipient`, `initGiftPremiumRequest`,
+   `getGiftPremiumLink`) moslab yozilgan va `respx` bilan sinalgan; **haqiqiy saytda tekshirilmagan**. Ish tartibi:
+   Fragment cookie'larini kiritish → 0.1 TON emas, **eng kichik real buyurtma** (50 ⭐) bilan sinash → keyin 3 oylik Premium.
+   Noaniq holatda tizim avtomatik qayta urinmaydi (`needs_review`), shuning uchun xato qimmatga tushmaydi.
+2. **TonAPI** javob formati (`decoded_body.text`, `in_msg.value`) hujjatga ko'ra yozilgan; jonli tekshirilmagan.
+3. **Telegram Bot API chaqiruvlari** (`giftPremiumSubscription`, `getMyStarBalance`, `refundStarPayment`, rangli `style`
+   tugmalar) aiogram 3.31 imzolari bo'yicha; Telegram bilan jonli sinalmagan.
+4. **TON Connect hamyon bilan haqiqiy tranzaksiya** (payload brauzerda to'g'ri yig'iladi, lekin hamyon tasdig'i sinalmagan).
+5. **Telegram ichidagi Mini App** (MainButton, BackButton, `openInvoice`) — oddiy brauzerda zaxira tugmalar bilan sinalgan.
+
+### 23.4 Birinchi ishga tushirish tartibi (siz bajarasiz)
+
+1. @BotFather → botni sozlash (tavsif/komandalar/menu tugmasi avtomatik `bot set-webhook` bilan o'rnatiladi).
+2. Server + domen → README "Production" bo'limi (`bootstrap_server.sh` → `.env` → `deploy.sh` → `wallet generate`).
+3. Admin panel → ⚙️ Sozlamalar: **Support username**, **Log chat ID**, 🔐 **Fragment cookie** (owner).
+4. 🏷 Narxlar: ustamalarni tekshiring; 🩺 Tizim holati hammasi ✅ bo'lsin.
+5. Eng kichik real buyurtmalar bilan sinash (50 ⭐, so'ng 3 oy), hot wallet'ga 30+ TON rezerv.
