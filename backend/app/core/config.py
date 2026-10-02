@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     log_chat_id: int | None = None
     bot_mode: Literal["webhook", "polling"] = "polling"
     throttle_ms: int = 400
+    dev_mock_provider: bool = False  # development only: deliver orders with the mock provider
 
     database_url: str = "postgresql+asyncpg://premium:premium@127.0.0.1:5432/premium"
     redis_url: str = "redis://127.0.0.1:6379/0"
@@ -52,6 +53,8 @@ class Settings(BaseSettings):
             "OWNER_TELEGRAM_ID": self.owner_telegram_id,
             "ADMIN_TON_ADDRESS": self.admin_ton_address,
         }
+        if self.dev_mock_provider:
+            return ["DEV_MOCK_PROVIDER must be false"]
         return [name for name, value in required.items() if not value]
 
 

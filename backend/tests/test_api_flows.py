@@ -166,3 +166,34 @@ async def test_admin_endpoints_rbac_and_actions(api, session):
     )
     assert blocked.json()["error"]["code"] == "MAINTENANCE"
     _ = (Dc, ProviderCode)
+
+
+async def test_payment_instructions_endpoint(api, session):
+    from app.services.settings_service import SettingsService
+
+    await SettingsService(session).set("hot_wallet.address", "UQHot")
+    await session.commit()
+    h = auth(15)
+    cat = (await api.get("/api/v1/catalog", headers=h)).json()
+    pid = [p for p in cat["plans"] if p["months"] == 3][0]["id"]
+    o = (
+        await api.post(
+            "/api/v1/orders", headers=h, json={"product_type": "premium", "plan_id": pid, "payment_method": "ton"}
+        )
+    ).json()
+    pay_id = o["payment_instructions"]["payment_id"]
+    r = (await api.get(f"/api/v1/payments/{pay_id}/instructions", headers=h)).json()
+    assert r["address"] == "UQHot" and r["comment"] == o["payment_instructions"]["comment"] and r["status"] == "pending"
+    assert (await api.get(f"/api/v1/payments/{pay_id}/instructions", headers=auth(16))).status_code == 404
+
+
+async def test_maintenance_blocks_everything_for_users_but_not_staff(api, session):
+    from app.services.settings_service import SettingsService
+
+    await SettingsService(session).set("bot.maintenance", True)
+    await session.commit()
+    r = await api.get("/api/v1/me", headers=auth(77))
+    assert r.status_code == 503 and r.json()["error"]["code"] == "MAINTENANCE"
+    assert (await api.get("/api/v1/catalog", headers=auth(77))).status_code == 503
+    assert (await api.get("/api/v1/me", headers=auth(1000))).status_code == 200  # owner passes
+    assert (await api.get("/api/v1/admin/dashboard", headers=auth(1000))).status_code == 200

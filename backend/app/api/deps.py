@@ -8,9 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.core.db import get_session
 from app.core.enums import AdminRole
-from app.core.errors import Forbidden, InvalidInitData, UserBanned
+from app.core.errors import Forbidden, InvalidInitData, Maintenance, UserBanned
 from app.core.security import parse_init_user, validate_init_data
 from app.models import User
+from app.services.settings_service import SettingsService
 from app.services.user_service import UserService
 
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -37,6 +38,8 @@ async def current_user(session: Session, authorization: Annotated[str | None, He
     )
     if user.is_banned:
         raise UserBanned()
+    if await SettingsService(session).get("bot.maintenance") and await UserService(session).role_of(user.id) is None:
+        raise Maintenance()
     return user
 
 

@@ -74,6 +74,8 @@ async def build_fragment_client(settings: SettingsService, signer: TonSigner | N
 
 
 async def build_providers(settings: SettingsService, rt: Runtime) -> dict[ProviderCode, FulfillmentProvider]:
+    if rt.mock is not None:  # development/tests: the mock is the only provider
+        return {ProviderCode.MOCK: rt.mock}
     providers: dict[ProviderCode, FulfillmentProvider] = {}
     signer = rt.get_signer()
     providers[ProviderCode.FRAGMENT_DIRECT] = FragmentDirectProvider(
@@ -82,8 +84,6 @@ async def build_providers(settings: SettingsService, rt: Runtime) -> dict[Provid
     providers[ProviderCode.FRAGMENT_API] = FragmentApiProvider()
     if rt.stars is not None:
         providers[ProviderCode.BOT_STARS] = BotStarsProvider(rt.stars)
-    if rt.mock is not None:
-        providers[ProviderCode.MOCK] = rt.mock
     return providers
 
 

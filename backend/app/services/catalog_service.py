@@ -86,4 +86,5 @@ class CatalogService:
             "methods": await self.methods(),
             "rates": {"ton_usd": str(await self.rates.ton_usd()), "usd_uzs": str(await self.rates.usd_uzs())},
             "stars_max": int(await self.settings.get("pricing.stars.max_amount")),
+            "support_username": str(await self.settings.get("bot.support_username") or ""),
         }

@@ -118,6 +118,37 @@ def db_seed_owner() -> None:
     run(go())
 
 
+@db_app.command("dev-seed")
+def db_dev_seed() -> None:
+    """DEVELOPMENT ONLY: fake rates, plan costs from the mock provider and a placeholder hot-wallet address."""
+
+    async def go() -> None:
+        from decimal import Decimal
+
+        from app.api.runtime import Services
+        from app.core.db import dispose_engine, session_maker
+        from app.core.redis import get_redis
+        from app.providers.fulfillment.mock import MockProvider
+        from app.services.admin_service import AdminService
+        from app.services.user_service import UserService
+
+        async with session_maker()() as session:
+            svc = Services(session)
+            await UserService(session).ensure_owner()
+            await svc.rates.set_rate("TON_USD", Decimal("3"), "dev")
+            await svc.rates.set_rate("USD_UZS", Decimal("12800"), "dev")
+            await AdminService(session, svc.settings).refresh_provider_prices([MockProvider()])
+            if not await svc.settings.get("hot_wallet.address"):
+                await svc.settings.set("hot_wallet.address", "UQDevHotWalletAddressDevHotWalletAddressDevHotWalletAd")
+            await svc.settings.set("bot.support_username", "soft_support")
+            await session.commit()
+        await dispose_engine()
+        await get_redis().aclose()
+        typer.echo("dev data ready")
+
+    run(go())
+
+
 @stats_app.command("recompute")
 def stats_recompute(frm: str, to: str) -> None:
     async def go() -> None:

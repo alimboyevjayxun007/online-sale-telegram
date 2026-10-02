@@ -228,6 +228,20 @@ async def get_payment(public_id: str, user: CurrentUser, session: Session) -> di
     return payment_dict(p)
 
 
+@router.get("/payments/{public_id}/instructions")
+async def payment_instructions(public_id: str, user: CurrentUser, session: Session) -> dict[str, Any]:
+    svc = Services(session)
+    ps = PaymentService(session, svc.settings, svc.notifier)
+    p = await ps.by_public_id(public_id, user.id)
+    if p is None:
+        raise NotFound("payment")
+    ins = await ps.instructions(p)
+    return {
+        "payment_id": ins.payment_id, "method": ins.method, "amount": ins.amount, "currency": ins.currency,
+        "expires_at": ins.expires_at, "status": p.status.value, "purpose": p.purpose.value, **ins.extra,
+    }  # fmt: skip
+
+
 class SubmittedIn(BaseModel):
     boc: str | None = None
 

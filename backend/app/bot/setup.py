@@ -43,6 +43,13 @@ def create_bot() -> Bot | None:
 def build_runtime(bot: Bot | None = None) -> Runtime:
     bot = bot or create_bot()
     rt = Runtime()
+    settings = get_settings()
+    if settings.dev_mock_provider:
+        if settings.is_production:
+            raise RuntimeError("DEV_MOCK_PROVIDER must never be enabled in production")
+        from app.providers.fulfillment.mock import MockProvider
+
+        rt.mock = MockProvider()
     if bot is not None:
         rt.bot = bot
         rt.messenger = AiogramMessenger(bot)
