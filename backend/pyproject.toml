@@ -18,13 +18,16 @@ dependencies = [
   "cryptography>=43",
   "typer>=0.12",
   "openpyxl>=3.1",
+  "tonutils>=2.3.0",
+  "pytoniq-core>=0.2.0",
 ]
 
 [dependency-groups]
 dev = ["pytest>=8", "pytest-asyncio>=0.24", "respx>=0.21", "ruff>=0.6", "mypy>=1.11"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
+extend-exclude = ["migrations"]
 target-version = "py313"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC"]

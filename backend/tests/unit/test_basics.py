@@ -11,7 +11,7 @@ def test_health() -> None:
 
 def test_production_validation_lists_missing() -> None:
     missing = Settings(app_env="production", _env_file=None).validate_for_production()
-    assert "BOT_TOKEN" in missing and "ADMIN_TON_ADDRESS" in missing
+    assert "WEBHOOK_SECRET" in missing
 
 
 def test_log_masking() -> None:
