@@ -44,7 +44,7 @@ export default function Broadcasts() {
           <div className="flex flex-wrap gap-2">{Object.entries(SEGMENTS).map(([k, s]) => <button key={k} onClick={() => setSeg(k)} className={`rounded-full px-3 py-1.5 text-sm ${seg === k ? "bg-accent text-white" : "bg-bg2"}`}>{s.label}</button>)}</div>
         </Field>
         {/* live preview, shaped like a Telegram message */}
-        {text && <div className="rounded-2xl rounded-bl-sm bg-bg2 p-3 text-sm"><div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: text.replace(/<(?!\/?(b|i|u|s|code|a)\b)[^>]*>/g, "") }} />{btnText && <div className="mt-2 rounded-lg bg-accent/20 py-1.5 text-center text-accent">{btnText}</div>}</div>}
+        {text && <div className="rounded-2xl rounded-bl-sm bg-bg2 p-3 text-sm"><div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: text.replace(/<(?!\/?(b|i|u|s|code)\b)[^>]*>/g, "").replace(/<(b|i|u|s|code)\b[^>]*>/g, "<$1>") }} />{btnText && <div className="mt-2 rounded-lg bg-accent/20 py-1.5 text-center text-accent">{btnText}</div>}</div>}
         {!draft ? <Btn tone="primary" full disabled={!text} onClick={create} data-testid="bc-create">Oldindan ko&apos;rish va qabul qiluvchilar soni</Btn> : (
           <div className="space-y-2">
             <div className="text-center">Qabul qiluvchilar: <b className="num">~{draft.total}</b></div>
