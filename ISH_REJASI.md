@@ -1,6 +1,6 @@
 # 💎 Premium Market Bot — To'liq loyiha hujjati va ish rejasi
 
-> **Holat:** 📝 Tasdiqlash kutilmoqda (v1.0)
+> **Holat:** ✅ Tasdiqlandi (v1.1) — 22-bo'limdagi qarorlar bilan. Ishlab chiqish: Bosqich 1 dan boshlandi
 > **Sana:** 2026-10-01
 > **Owner / Bosh admin:** Siz
 > **Stek:** Python 3.13 · FastAPI · aiogram 3 · PostgreSQL · Redis · Next.js 16 · TON · Telegram Stars
@@ -36,7 +36,8 @@
 18. [Bosqichma-bosqich ish rejasi](#18-bosqichma-bosqich-ish-rejasi)
 19. [Xavflar va ularni kamaytirish](#19-xavflar-va-ularni-kamaytirish)
 20. [Kelajakdagi imkoniyatlar](#20-kelajakdagi-imkoniyatlar)
-21. [❓ Tasdiqlash uchun savollar (siz javob berasiz)](#21--tasdiqlash-uchun-savollar-siz-javob-berasiz)
+21. [❓ Tasdiqlash uchun savollar](#21--tasdiqlash-uchun-savollar-siz-javob-berasiz)
+22. [✅ Qabul qilingan qarorlar](#22--qabul-qilingan-qarorlar)
 
 ---
 
@@ -4027,3 +4028,26 @@ shuni tanlashingiz mumkin.
 
 > ✅ **Keyingi qadam:** rejani ko'rib chiqing, o'zgartirish kerak bo'lgan joylarni yozing va 21-bo'lim savollariga
 > javob bering. Tasdiqlaganingizdan so'ng **Bosqich 1** dan boshlayman va har bir bosqich oxirida natijani ko'rsatib boraman.
+
+
+---
+
+## 22. ✅ Qabul qilingan qarorlar
+
+| # | Qaror | Rejaga ta'siri |
+|---|-------|----------------|
+| 1 | **B** — 1 oylik Premium "tez kunda" deb kulrang ko'rsatiladi | `premium_plans(1)`: `is_enabled=false`, `provider_supported=false`, UI'da bosilmaydigan karta |
+| 2 | **C** — Fragment: o'z akkaunt (asosiy) + uchinchi tomon API (zaxira) | `FragmentDirectProvider` + `FragmentApiProvider` ikkalasi ham yoziladi |
+| 3 | **A** — Stars bilan to'langan Premium bot Stars balansidan (`giftPremiumSubscription`) | `fulfillment.stars_paid_strategy = "bot_stars"` |
+| 4 | **A+B+C** — Balans USD'da saqlanadi, **USD, so'm va TON** da ko'rsatiladi | Saqlash: `balance_usd`; UI/botda 3 valyutada ekvivalent |
+| 5 | **A** — uz + ru + en | Standart til: uz |
+| 6 | **A** — foydani yechish faqat qo'lda | `hot_wallet.sweep_enabled = false` |
+| 7 | **A** — ustamalar: Premium 8%, Stars 7%, referal 2%, min foyda 2% | Standart seed qiymatlari |
+| 8 | **A** — majburiy obuna **kerak**, kanal keyin beriladi | Funksiya yoziladi, kanal admin paneldan qo'shiladi; kanal qo'shilmaguncha tekshiruv o'tkazib yuboriladi |
+| 9 | Bot nomi: **Soft-tg-Market** | Brend nomi hamma matnda; username @BotFather'dagi bilan bir xil bo'ladi |
+| 10 | **C** — UZS karta to'lovlari kerak emas | 20-bo'limdan chiqarildi |
+| 11 | **A** — balansni pulga yechib bo'lmaydi | Faqat xarid uchun |
+| 12 | Server hozir yo'q | 16-bosqich (deploy) oxirida; hozircha lokal ishlab chiqish |
+| 13 | User panel ham to'liq bo'lsin | Rejada bor (U1–U20, Mini App `/`, `/premium`…); `user` roli qo'shilgan |
+| 14 | **B** — yangi foydalanuvchi faqat kunlik hisobotda | `notify.events.new_user = false` |
+| — | Owner Telegram ID: `6190984042` | `OWNER_TELEGRAM_ID` |
