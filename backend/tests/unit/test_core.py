@@ -1,11 +1,11 @@
 import time
+from decimal import Decimal
 
 import pytest
 
 from app.core.errors import ExpiredInitData, InvalidInitData
 from app.core.money import D, ceil_places, round_up, to_nano
 from app.core.security import build_init_data, decrypt, encrypt, validate_init_data
-from decimal import Decimal
 
 TOKEN = "123456:TESTTOKENTESTTOKENTESTTOKENTESTTOKEN"
 

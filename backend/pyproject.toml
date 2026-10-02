@@ -31,6 +31,7 @@ extend-exclude = ["migrations"]
 target-version = "py313"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC"]
+ignore = ["E501"]
 
 [tool.mypy]
 strict = true

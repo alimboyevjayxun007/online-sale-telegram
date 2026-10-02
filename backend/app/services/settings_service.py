@@ -30,6 +30,7 @@ DEFAULTS: dict[str, Any] = {
     "fulfillment.auto_refund": True,
     "fragment.mode": "direct",
     "fragment.cookies": "",
+    "hot_wallet.address": "",
     "hot_wallet.reserve_ton": "30",
     "hot_wallet.low_balance_alert_ton": "15",
     "hot_wallet.sweep_enabled": False,
@@ -48,6 +49,7 @@ DEFAULTS: dict[str, Any] = {
         "order_failed": True,
         "new_user": False,
     },
+    "provider.star_unit_cost_ton": "0.005",
     "ton_watcher.last_lt": 0,
     "admin.balance_limit_usd": "50",
 }
