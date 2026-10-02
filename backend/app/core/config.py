@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     webhook_secret: SecretStr = SecretStr("")
     log_chat_id: int | None = None
     bot_mode: Literal["webhook", "polling"] = "polling"
+    throttle_ms: int = 400
 
     database_url: str = "postgresql+asyncpg://premium:premium@127.0.0.1:5432/premium"
     redis_url: str = "redis://127.0.0.1:6379/0"

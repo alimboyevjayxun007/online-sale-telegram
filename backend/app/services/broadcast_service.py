@@ -32,7 +32,9 @@ class BroadcastService:
         if segment.get("has_orders") is False:
             conds.append(User.orders_count == 0)
         if segment.get("registered_after"):
-            conds.append(User.created_at >= segment["registered_after"])
+            from datetime import datetime
+
+            conds.append(User.created_at >= datetime.fromisoformat(segment["registered_after"]))
         if segment.get("inactive_days"):
             from datetime import timedelta
 

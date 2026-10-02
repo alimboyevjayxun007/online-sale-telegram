@@ -1,4 +1,5 @@
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends, Header
@@ -42,12 +43,26 @@ async def current_user(session: Session, authorization: Annotated[str | None, He
 CurrentUser = Annotated[User, Depends(current_user)]
 
 
-def require_role(minimum: AdminRole) -> Callable[..., Awaitable[User]]:
-    async def dep(user: CurrentUser, session: Session) -> User:
+@dataclass
+class Actor:
+    user: User
+    role: AdminRole
+
+    @property
+    def id(self) -> int:
+        return self.user.id
+
+
+def require_role(minimum: AdminRole) -> Callable[..., Awaitable[Actor]]:
+    async def dep(user: CurrentUser, session: Session) -> Actor:
         role = await UserService(session).role_of(user.id)
         if role is None or RANK[role] < RANK[minimum]:
             raise Forbidden()
-        user.__dict__["_role"] = role
-        return user
+        return Actor(user, role)
 
     return dep
+
+
+SupportActor = Annotated[Actor, Depends(require_role(AdminRole.SUPPORT))]
+AdminActor = Annotated[Actor, Depends(require_role(AdminRole.ADMIN))]
+OwnerActor = Annotated[Actor, Depends(require_role(AdminRole.OWNER))]

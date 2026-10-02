@@ -109,7 +109,8 @@ class PricingService:
         if promo is None:
             return q
         discount = PromoService.discount_for(promo, q.price_usd)
-        new_price = max(q.price_usd - discount, q.min_price_usd)  # never below minimum margin
+        # never below the minimum margin; keep prices on a clean 0.01 grid and never above the undiscounted price
+        new_price = min(round_up(max(q.price_usd - discount, q.min_price_usd), Decimal("0.01")), q.price_usd)
         discount = quantize(q.price_usd - new_price)
         q.discount_usd = discount
         q.price_usd = quantize(new_price)

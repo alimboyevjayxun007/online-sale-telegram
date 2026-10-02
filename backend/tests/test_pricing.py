@@ -86,7 +86,11 @@ async def test_promo_never_below_min_margin(session):
     base = await p.quote_premium(plan())
     promo = PromoCode(code="BIG", type=PromoType.PERCENT, value=Dc(90), applies_to=ProductScope.ALL)
     q = await p.quote_premium(plan(), promo)
-    assert q.price_usd == base.min_price_usd and q.discount_usd == base.price_usd - base.min_price_usd
+    assert (
+        q.price_usd == Dc("12.40")
+        and q.price_usd >= base.min_price_usd
+        and q.discount_usd == base.price_usd - Dc("12.40")
+    )
     small = PromoCode(code="S", type=PromoType.FIXED_USD, value=Dc("0.5"), applies_to=ProductScope.ALL)
     assert (await p.quote_premium(plan(), small)).price_usd == base.price_usd - Dc("0.5")
 

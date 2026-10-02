@@ -10,6 +10,7 @@ os.environ["OWNER_TELEGRAM_ID"] = "1000"
 os.environ["ENCRYPTION_KEY"] = "yQ0m3m1h0m8V8p5m6F3K8e6k1Zf2o9fX3m5v7b9c1d4="
 os.environ["APP_SECRET_KEY"] = "test-secret"
 os.environ["BOT_USERNAME"] = "TestBot"
+os.environ["THROTTLE_MS"] = "0"
 os.environ["ADMIN_TON_ADDRESS"] = "UQAdminAddress"
 
 import pytest  # noqa: E402

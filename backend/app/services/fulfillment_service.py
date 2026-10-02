@@ -22,6 +22,7 @@ from app.core.timeutil import now_utc
 from app.i18n import t
 from app.models import HotWalletTransaction, Order, Payment, StarsTransaction, User
 from app.providers.fulfillment.base import DeliveryResult, FulfillmentProvider
+from app.providers.fulfillment.bot_stars import GIFT_STARS
 from app.providers.fulfillment.gateway import StarsGateway
 from app.services.balance_service import BalanceService
 from app.services.notification_service import NotificationService
@@ -89,10 +90,17 @@ class FulfillmentService:
         ):
             priority = [ProviderCode.BOT_STARS] + [c for c in priority if c != ProviderCode.BOT_STARS]
         out: list[FulfillmentProvider] = []
+        star_rate = D(await self.settings.get("pricing.star_usd_rate"))
         for code in priority:
             p = self.providers.get(code)
-            if p is not None and await p.supports(order) and await p.is_available():
-                out.append(p)
+            if p is None or not await p.supports(order) or not await p.is_available():
+                continue
+            if code == ProviderCode.BOT_STARS and order.payment_method != PaymentMethod.STARS:
+                # fallback paid out of the bot's Stars: never sell at a loss automatically
+                if D(GIFT_STARS.get(order.plan_months or 0, 0)) * star_rate > order.price_usd:
+                    log.warning("bot_stars_fallback_skipped_unprofitable", order=order.public_id)
+                    continue
+            out.append(p)
         if not out and ProviderCode.MOCK in self.providers:
             out.append(self.providers[ProviderCode.MOCK])
         return out

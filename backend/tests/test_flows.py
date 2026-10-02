@@ -302,3 +302,23 @@ async def test_ledger_reconciles(session, env):
     total = await session.scalar(select(func.sum(BalanceTransaction.amount_usd)).where(BalanceTransaction.user_id == 2))
     await session.refresh(u)
     assert total == u.balance_usd
+
+
+async def test_bot_stars_fallback_never_sells_at_a_loss(session):
+    await seed(session)
+    env = Env(session).with_bot_stars()
+    env.providers.pop(ProviderCode.MOCK)  # only the bot_stars route exists
+    u = await make_user(session, 5, username="x_user")
+    await fund(session, u, 100)
+    # 12 months costs 2500 stars (= 32.5 $ at 0.013) but sells for 31.50 $ -> must not be auto-delivered
+    res = await env.checkout.create_order(u, premium_req(await plan_id(session, 12), M.BALANCE))
+    assert res.order.price_usd < Dc("32.5")
+    f = env.fulfillment()
+    await f.process_next()
+    await session.refresh(res.order)
+    assert res.order.status == S.PAID and res.order.error_code == "no_provider" and env.stars.gifts == []
+    # 3 months: 1000 stars = 13 $ <= 13.15 $ -> allowed
+    res3 = await env.checkout.create_order(u, premium_req(await plan_id(session, 3), M.BALANCE))
+    await f.process_next()
+    await session.refresh(res3.order)
+    assert res3.order.status == S.COMPLETED and env.stars.gifts == [(5, 3, 1000)]
